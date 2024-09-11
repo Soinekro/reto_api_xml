@@ -11,7 +11,6 @@ Route::prefix('vouchers')->group(
     function () {
         Route::get('/', GetVouchersHandler::class);
         Route::post('/', StoreVouchersHandler::class);
-        Route::post('/store', StoreVoucherHandler::class);
         Route::get('/{voucher}', GetVoucherHandler::class);
         Route::delete('/{voucher}', DeleteVoucherHandler::class);
     }

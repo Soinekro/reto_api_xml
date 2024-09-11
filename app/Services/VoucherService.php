@@ -38,6 +38,11 @@ class VoucherService
         $xml = new SimpleXMLElement($xmlContent);
 
         $issuerName = (string) $xml->xpath('//cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name')[0];
+        $invoiceCode = (string) $xml->xpath('//cbc:InvoiceTypeCode')[0];
+        $invoiceSerieComplete = (string) $xml->xpath('//cbc:ID')[0];
+        $invoiceSerie = substr($invoiceSerieComplete, 0, 4);
+        $invoiceCorrelative = (int) substr($invoiceSerieComplete, 5);
+        $invoice_type_currency = (string) $xml->xpath('//cbc:DocumentCurrencyCode')[0];
         $issuerDocumentType = (string) $xml->xpath('//cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID')[0];
         $issuerDocumentNumber = (string) $xml->xpath('//cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID')[0];
 
@@ -48,6 +53,10 @@ class VoucherService
         $totalAmount = (string) $xml->xpath('//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount')[0];
 
         $voucher = new Voucher([
+            'invoice_code' => $invoiceCode,
+            'invoice_serie' => $invoiceSerie,
+            'invoice_correlative' => $invoiceCorrelative,
+            'invoice_type_currency' => $invoice_type_currency,
             'issuer_name' => $issuerName,
             'issuer_document_type' => $issuerDocumentType,
             'issuer_document_number' => $issuerDocumentNumber,
