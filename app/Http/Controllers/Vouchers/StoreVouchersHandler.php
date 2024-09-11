@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Vouchers;
 
 use App\Http\Resources\Vouchers\VoucherResource;
+use App\Jobs\Vouchers\ProcessVouchersFromXmlContentsJob;
 use App\Services\VoucherService;
 use Exception;
 use Illuminate\Http\Request;
@@ -17,22 +18,23 @@ class StoreVouchersHandler
     public function __invoke(Request $request): Response
     {
         try {
+            $request->validate([
+                'files' => 'required|array',
+                'files.*' => 'required|file|mimes:xml',
+            ]);
             $xmlFiles = $request->file('files');
-
             if (!is_array($xmlFiles)) {
                 $xmlFiles = [$xmlFiles];
             }
 
             $xmlContents = [];
+            $user = auth()->user();
             foreach ($xmlFiles as $xmlFile) {
                 $xmlContents[] = file_get_contents($xmlFile->getRealPath());
             }
-
-            $user = auth()->user();
-            $vouchers = $this->voucherService->storeVouchersFromXmlContents($xmlContents, $user);
-
+            ProcessVouchersFromXmlContentsJob::dispatch($xmlContents, $user);
             return response([
-                'data' => VoucherResource::collection($vouchers),
+                'data' => 'Los comprobantes se están procesando',
             ], 201);
         } catch (Exception $exception) {
             return response([
