@@ -36,6 +36,9 @@ class Voucher extends Model
     use HasUuids;
     use SoftDeletes;
 
+    const STATUS_STORE = true;
+    const STATUS_REJECTED = false;
+
     protected $fillable = [
         'invoice_code',
         'invoice_serie',

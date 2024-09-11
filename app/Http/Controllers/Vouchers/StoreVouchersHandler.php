@@ -8,25 +8,19 @@ use App\Services\VoucherService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class StoreVouchersHandler
 {
-    public function __construct(private readonly VoucherService $voucherService)
-    {
-    }
+    public function __construct(private readonly VoucherService $voucherService) {}
 
     public function __invoke(Request $request): Response
     {
         try {
-            $request->validate([
-                'files' => 'required|array',
-                'files.*' => 'required|file|mimes:xml',
-            ]);
             $xmlFiles = $request->file('files');
             if (!is_array($xmlFiles)) {
                 $xmlFiles = [$xmlFiles];
             }
-
             $xmlContents = [];
             $user = auth()->user();
             foreach ($xmlFiles as $xmlFile) {
@@ -36,7 +30,9 @@ class StoreVouchersHandler
             return response([
                 'data' => 'Los comprobantes se están procesando',
             ], 201);
+
         } catch (Exception $exception) {
+            Log::error($exception);
             return response([
                 'message' => $exception->getMessage(),
             ], 400);

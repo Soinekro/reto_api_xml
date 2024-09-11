@@ -17,10 +17,11 @@ class VouchersCreated
     /**
      * @param Voucher[] $vouchers
      * @param User $user
+     * @param array $vouchers_error
      */
     public function __construct(
         public readonly array $vouchers,
-        public readonly User $user
-    ) {
-    }
+        public readonly User $user,
+        public readonly array $vouchers_error
+    ) {}
 }

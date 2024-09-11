@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Voucher;
 use App\Models\VoucherLine;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 use SimpleXMLElement;
 
 class VoucherService
@@ -24,11 +25,20 @@ class VoucherService
     public function storeVouchersFromXmlContents(array $xmlContents, User $user): array
     {
         $vouchers = [];
+        $vouchers_error = [];
         foreach ($xmlContents as $xmlContent) {
-            $vouchers[] = $this->storeVoucherFromXmlContent($xmlContent, $user);
+            try {
+                $vouchers[] = $this->storeVoucherFromXmlContent($xmlContent, $user);
+            } catch (\Exception $e) {
+                Log::error($e);
+                $vouchers_error[] = [
+                    'xml_content' => $xmlContent,
+                    'error' => $e->getMessage(),
+                ];
+            }
         }
 
-        VouchersCreated::dispatch($vouchers, $user);
+        VouchersCreated::dispatch($vouchers, $user, $vouchers_error = []);
 
         return $vouchers;
     }

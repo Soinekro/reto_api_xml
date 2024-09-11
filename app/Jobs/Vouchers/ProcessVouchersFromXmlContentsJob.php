@@ -20,11 +20,9 @@ class ProcessVouchersFromXmlContentsJob implements ShouldQueue
      */
     public VoucherService $voucherService;
     public function __construct(
-        private $xmlContent,
+        private $xmlContents,
         private User $user,
     ) {
-        // $this->xmlContent = $xmlContent;
-        // $this->user = $user;
         $this->voucherService = new VoucherService();
     }
 
@@ -33,6 +31,6 @@ class ProcessVouchersFromXmlContentsJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $this->voucherService->storeVouchersFromXmlContents($this->xmlContent, $this->user);
+        $this->voucherService->storeVouchersFromXmlContents($this->xmlContents, $this->user);
     }
 }
