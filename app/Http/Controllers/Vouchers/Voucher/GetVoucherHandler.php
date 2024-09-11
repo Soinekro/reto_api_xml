@@ -10,7 +10,7 @@ use Illuminate\Http\Response;
 
 class GetVoucherHandler
 {
-    public function __construct(private readonly VoucherService $voucherService)
+    public function __construct()
     {
     }
 
