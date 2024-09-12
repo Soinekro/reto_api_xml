@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
 
 trait ApiTrait
@@ -27,19 +28,33 @@ trait ApiTrait
         }
         $query->with($relations);
     }
-    //enpoint que me filtre por serie, correlative,fecha inicio y fecha fin
+    /**
+     * @param Builder $query
+     * @return Builder
+     */
     public function scopeCode(Builder $query)
     {
         if (empty($this->allowFilters)) {
             return;
         }
 
-        $filters = request()->only($this->allowFilters);
+        $filters = request()->only('invoice_serie', 'invoice_correlative');
         foreach ($filters as $key => $value) {
             if ($value) {
                 $query->where($key, $value);
             }
         }
-
+    }
+    /**
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeBetweenDates(Builder $query)
+    {
+        if (empty(request()->start_date) || empty(request()->end_date)) {
+            return;
+        }
+        $query->whereDate($this->table.'created_at', '>=', request()->start_date)
+            ->whereDate($this->table.'created_at', '<=', request()->end_date);
     }
 }

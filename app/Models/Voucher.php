@@ -56,6 +56,7 @@ class Voucher extends Model
         'xml_content',
         'user_id',
     ];
+    
     protected $allowFilters = [
         'invoice_serie',
         'invoice_correlative',

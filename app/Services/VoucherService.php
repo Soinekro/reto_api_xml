@@ -15,13 +15,10 @@ class VoucherService
     public function getVouchers(
         int $page,
         int $paginate,
-        ?string $serie,
-        ?int $correlative,
-        ?string $startDate,
-        ?string $endDate
     ): LengthAwarePaginator {
         return Voucher::included()
-            ->code($serie, $correlative)
+            ->code()
+            ->betweenDates()
             ->paginate(perPage: $paginate, page: $page);
     }
 

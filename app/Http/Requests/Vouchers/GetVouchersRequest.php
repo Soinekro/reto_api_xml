@@ -15,7 +15,7 @@ class GetVouchersRequest extends FormRequest
             'serie' => ['nullable','required_with:correlative', 'string'],
             'correlative' => ['nullable','required_with:serie', 'int'],
             'start_date' => ['nullable','date', 'date_format:Y-m-d'],
-            'end_date' => ['nullable','date' , 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'end_date' => ['nullable','required_with:start_date','date' , 'date_format:Y-m-d', 'after_or_equal:start_date'],
         ];
     }
 }
