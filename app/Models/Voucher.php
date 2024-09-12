@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ApiTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,6 +36,7 @@ class Voucher extends Model
     use HasFactory;
     use HasUuids;
     use SoftDeletes;
+    use ApiTrait;
 
     const STATUS_STORE = true;
     const STATUS_REJECTED = false;
@@ -53,6 +55,17 @@ class Voucher extends Model
         'total_amount',
         'xml_content',
         'user_id',
+    ];
+    protected $allowFilters = [
+        'serie',
+        'correlative',
+        'date_init',
+        'date_end',
+    ];
+
+    protected $allowIncluded = [
+        'user',
+        'lines',
     ];
 
     protected $casts = [

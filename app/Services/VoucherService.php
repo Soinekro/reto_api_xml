@@ -12,9 +12,10 @@ use SimpleXMLElement;
 
 class VoucherService
 {
-    public function getVouchers(int $page, int $paginate): LengthAwarePaginator
+    public function getVouchers(string $included,int $page, int $paginate)
     {
-        return Voucher::with(['lines', 'user'])->paginate(perPage: $paginate, page: $page);
+        return Voucher::included($included)
+            ->paginate(perPage: $paginate, page: $page);
     }
 
     /**
