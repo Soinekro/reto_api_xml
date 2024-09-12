@@ -57,10 +57,10 @@ class Voucher extends Model
         'user_id',
     ];
     protected $allowFilters = [
-        'serie',
-        'correlative',
-        'date_init',
-        'date_end',
+        'invoice_serie',
+        'invoice_correlative',
+        'start_date',
+        'end_date',
     ];
 
     protected $allowIncluded = [

@@ -12,12 +12,12 @@ trait ApiTrait
      * @param Request $request
      * @return Builder
      */
-    public function scopeIncluded(Builder $query, $included)
+    public function scopeIncluded(Builder $query)
     {
-        if (empty($this->allowIncluded) || empty($included)) {
+        if (empty($this->allowIncluded) || empty(request()->included)) {
             return;
         }
-        $relations = explode(',', $included); //convertir a array la cadena de texto
+        $relations = explode(',', request()->included); //convertir a array la cadena de texto
 
         $allowIncluded = collect($this->allowIncluded);
         foreach ($relations as $key => $relationship) {
@@ -26,5 +26,20 @@ trait ApiTrait
             }
         }
         $query->with($relations);
+    }
+    //enpoint que me filtre por serie, correlative,fecha inicio y fecha fin
+    public function scopeCode(Builder $query)
+    {
+        if (empty($this->allowFilters)) {
+            return;
+        }
+
+        $filters = request()->only($this->allowFilters);
+        foreach ($filters as $key => $value) {
+            if ($value) {
+                $query->where($key, $value);
+            }
+        }
+
     }
 }
