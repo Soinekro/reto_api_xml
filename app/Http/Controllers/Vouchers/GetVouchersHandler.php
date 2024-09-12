@@ -7,21 +7,29 @@ use App\Http\Resources\Vouchers\VoucherResource;
 use App\Services\VoucherService;
 use Illuminate\Http\Response;
 
+/**
+ * Class GetVouchersHandler
+ * @package App\Http\Controllers\Vouchers
+ *
+ */
 class GetVouchersHandler
 {
-    public function __construct(private readonly VoucherService $voucherService)
-    {
-    }
+    /**
+     * GetVouchersHandler constructor.
+     * @param VoucherService $voucherService
+     * @return void
+     */
+    public function __construct(private readonly VoucherService $voucherService) {}
 
+    /**
+     * @param GetVouchersRequest $request
+     * @return Response
+     */
     public function __invoke(GetVouchersRequest $request): Response
     {
         $vouchers = $this->voucherService->getVouchers(
             $request->query('page'),
             $request->query('paginate'),
-            $request->query('serie'),
-            $request->query('correlative'),
-            $request->query('start_date'),
-            $request->query('end_date')
         );
 
         return response([

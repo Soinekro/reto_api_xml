@@ -11,14 +11,21 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Class ProcessVouchersFromXmlContentsJob
+ * @package App\Jobs\Vouchers
+ */
 class ProcessVouchersFromXmlContentsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * Create a new job instance.
+     * @var VoucherService
      */
     public VoucherService $voucherService;
+    /**
+     * Create a new job instance.
+     */
     public function __construct(
         private $xmlContents,
         private User $user,
@@ -28,6 +35,7 @@ class ProcessVouchersFromXmlContentsJob implements ShouldQueue
 
     /**
      * Execute the job.
+     * @return void
      */
     public function handle(): void
     {

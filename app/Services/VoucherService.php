@@ -12,13 +12,17 @@ use SimpleXMLElement;
 
 class VoucherService
 {
-    public function getVouchers(
-        int $page,
-        int $paginate,
-    ): LengthAwarePaginator {
+    /**
+     * @param int $page
+     * @param int $paginate
+     * @return LengthAwarePaginator
+     */
+    public function getVouchers(int $page, int $paginate): LengthAwarePaginator
+    {
         return Voucher::included()
             ->code()
             ->betweenDates()
+            ->sort()
             ->paginate(perPage: $paginate, page: $page);
     }
 

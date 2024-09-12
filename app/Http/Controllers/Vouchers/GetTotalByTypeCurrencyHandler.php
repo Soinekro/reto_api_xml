@@ -5,8 +5,15 @@ namespace App\Http\Controllers\Vouchers;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Class GetTotalByTypeCurrencyHandler
+ * @package App\Http\Controllers\Vouchers
+ */
 class GetTotalByTypeCurrencyHandler
 {
+    /**
+     * @return Response
+     */
     public function __invoke(): Response
     {
         $totales = DB::table('vouchers')

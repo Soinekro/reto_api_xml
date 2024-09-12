@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Vouchers;
 
-use App\Http\Resources\Vouchers\VoucherResource;
 use App\Jobs\Vouchers\ProcessVouchersFromXmlContentsJob;
 use App\Services\VoucherService;
 use Exception;
@@ -10,10 +9,23 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Class StoreVouchersHandler
+ * @package App\Http\Controllers\Vouchers
+ */
 class StoreVouchersHandler
 {
+    /**
+     * StoreVouchersHandler constructor.
+     * @param VoucherService $voucherService
+     * @return void
+     */
     public function __construct(private readonly VoucherService $voucherService) {}
 
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function __invoke(Request $request): Response
     {
         try {

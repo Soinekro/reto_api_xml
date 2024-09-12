@@ -14,21 +14,28 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * @property string $id
- * @property string $issuer_name
- * @property string $issuer_document_type
- * @property string $issuer_document_number
- * @property string $receiver_name
- * @property string $receiver_document_type
- * @property string $receiver_document_number
- * @property float $total_amount
- * @property string $xml_content
- * @property string $user_id
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
- * @property Carbon|null $deleted_at
+ * @property string invoice_code
+ * @property string invoice_serie
+ * @property int invoice_correlative
+ * @property string invoice_type_currency
+ * @property string issuer_name
+ * @property string issuer_document_type
+ * @property string issuer_document_number
+ * @property string receiver_name
+ * @property string receiver_document_type
+ * @property string receiver_document_number
+ * @property float total_amount
+ * @property string xml_content
+ * @property int user_id
  * @property-read User $user
  * @property-read Collection|User[] $lines
+ * @property Carbon|null created_at
+ * @property Carbon|null updated_at
+ * @property Carbon|null deleted_at
+ * @method static Builder included()
+ * @method static Builder code()
+ * @method static Builder betweenDates()
+ * @method static Builder sort()
  * @mixin Builder
  */
 class Voucher extends Model
@@ -56,7 +63,7 @@ class Voucher extends Model
         'xml_content',
         'user_id',
     ];
-    
+
     protected $allowFilters = [
         'invoice_serie',
         'invoice_correlative',
@@ -64,20 +71,32 @@ class Voucher extends Model
         'end_date',
     ];
 
-    protected $allowIncluded = [
+    protected $allowIncludeds = [
         'user',
         'lines',
+    ];
+
+    protected $allowSorts = [
+        'invoice_serie',
+        'invoice_correlative',
+        'total_amount',
+        'created_at',
     ];
 
     protected $casts = [
         'total_amount' => 'float',
     ];
 
+    /**
+     * @return BelongsTo
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
+    /**
+     * @return HasMany
+     */
     public function lines(): HasMany
     {
         return $this->hasMany(VoucherLine::class);

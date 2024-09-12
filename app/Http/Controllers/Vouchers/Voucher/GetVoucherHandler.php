@@ -6,6 +6,10 @@ use App\Http\Resources\Vouchers\VoucherResource;
 use App\Models\Voucher;
 use Illuminate\Http\Response;
 
+/**
+ * Class GetVoucherHandler
+ * @package App\Http\Controllers\Vouchers\Voucher
+ */
 class GetVoucherHandler
 {
     public function __invoke(Voucher $voucher): Response
