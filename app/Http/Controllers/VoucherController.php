@@ -8,6 +8,7 @@ use App\Jobs\Vouchers\ProcessVouchersFromXmlContentsJob;
 use App\Models\Voucher;
 use App\Services\VoucherService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class VoucherController extends Controller
 {
@@ -22,20 +23,21 @@ class VoucherController extends Controller
      * @param GetVouchersRequest $request
      * @return Response
      */
-    public function index(GetVouchersRequest $request)
-    { {
-            $vouchers = $this->voucherService->getVouchers();
+    public function index(GetVouchersRequest $request): Response
+    {
+        $vouchers = $this->voucherService->getVouchers();
 
-            return response([
-                'data' => VoucherResource::collection($vouchers),
-            ], 200);
-        }
+        return response([
+            'data' => VoucherResource::collection($vouchers),
+        ], 200);
     }
 
     /**
      * Store a newly created resource in storage.
+     * @param Request $request
+     * @return Response
      */
-    public function store(Request $request)
+    public function store(Request $request): Response
     {
         $xmlFiles = $request->file('files');
         if (!is_array($xmlFiles)) {
@@ -54,8 +56,10 @@ class VoucherController extends Controller
 
     /**
      * Display the specified resource.
+     * @param Voucher $voucher
+     * @return Response
      */
-    public function show(Voucher $voucher)
+    public function show(Voucher $voucher): Response
     {
         return response([
             'data' => VoucherResource::make($voucher),
@@ -64,8 +68,10 @@ class VoucherController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * @param Voucher $voucher
+     * @return Response
      */
-    public function destroy(Voucher $voucher)
+    public function destroy(Voucher $voucher): Response
     {
         $voucher->delete();
         return response([
