@@ -27,10 +27,7 @@ class GetVouchersHandler
      */
     public function __invoke(GetVouchersRequest $request): Response
     {
-        $vouchers = $this->voucherService->getVouchers(
-            $request->query('page'),
-            $request->query('paginate'),
-        );
+        $vouchers = $this->voucherService->getVouchers();
 
         return response([
             'data' => VoucherResource::collection($vouchers),

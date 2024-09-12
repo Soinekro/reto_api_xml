@@ -19,7 +19,6 @@ trait ApiTrait
 {
     /**
      * @param Builder $query
-     * @param Request $request
      * @return Builder
      */
     public function scopeIncluded(Builder $query)
@@ -69,8 +68,6 @@ trait ApiTrait
 
     /**
      * @param QueryBuilder $query
-     * @param string $column
-     * @param string $direction
      * @return QueryBuilder
      */
     public function scopeSort(Builder $query)
@@ -78,7 +75,7 @@ trait ApiTrait
         if (empty($this->allowSorts) || empty(request()->sort)) {
             return;
         }
-        $sortFields = explode(',',request('sort'));
+        $sortFields = explode(',',request('sort')); //convertir a array la cadena de texto
         $allowSort = collect($this->allowSorts);
         foreach ($sortFields as $sortField) {
             $sortDirection = 'asc';
@@ -90,5 +87,14 @@ trait ApiTrait
                 $query->orderBy($sortField, $sortDirection);
             }
         }
+    }
+
+    /**
+     * @param QueryBuilder $query
+     * @return QueryBuilder
+     */
+    public function scopePerPaginate(Builder $query)
+    {
+        return $query->paginate(request()->paginate, ['*'], 'page', request()->page);
     }
 }

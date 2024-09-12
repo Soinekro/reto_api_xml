@@ -17,13 +17,13 @@ class VoucherService
      * @param int $paginate
      * @return LengthAwarePaginator
      */
-    public function getVouchers(int $page, int $paginate): LengthAwarePaginator
+    public function getVouchers(): LengthAwarePaginator
     {
         return Voucher::included()
             ->code()
             ->betweenDates()
             ->sort()
-            ->paginate(perPage: $paginate, page: $page);
+            ->perPaginate();
     }
 
     /**
