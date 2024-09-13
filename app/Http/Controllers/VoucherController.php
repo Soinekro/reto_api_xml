@@ -51,10 +51,9 @@ class VoucherController extends Controller
                 'content' => file_get_contents($xmlFile->getRealPath()),
             ];
         }
-        //$this->voucherService->storeVouchersFromXmlContents($xmlContents, $user);
-        // ProcessVouchersFromXmlContentsJob::dispatch($xmlContents, $user);
+        ProcessVouchersFromXmlContentsJob::dispatch($xmlContents, $user);
         return response([
-            'data' => $this->voucherService->storeVouchersFromXmlContents($xmlContents, $user),
+            'data' => "Los comprobantes están siendo procesados",
         ], 201);
     }
 
