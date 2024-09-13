@@ -15,7 +15,7 @@ class VouchersCreated
     use SerializesModels;
 
     /**
-     * @param Voucher[] $vouchers
+     * @param array $vouchers
      * @param User $user
      * @param array $vouchers_error
      */

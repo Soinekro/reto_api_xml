@@ -8,28 +8,30 @@
 <body>
     <h1>Estimado {{ $user->name }},</h1>
     <p>Hemos recibido tus comprobantes con los siguientes detalles:</p>
-    <h3>comprobantes aceptados</h3>
-    @foreach ($comprobantes as $comprobante)
-        <ul>
-            <li>Nombre del Emisor: {{ $comprobante->issuer_name }}</li>
-            <li>Tipo de Documento del Emisor: {{ $comprobante->issuer_document_type }}</li>
-            <li>Número de Documento del Emisor: {{ $comprobante->issuer_document_number }}</li>
-            <li>Nombre del Receptor: {{ $comprobante->receiver_name }}</li>
-            <li>Tipo de Documento del Receptor: {{ $comprobante->receiver_document_type }}</li>
-            <li>Número de Documento del Receptor: {{ $comprobante->receiver_document_number }}</li>
-            <li>Monto Total: {{ $comprobante->total_amount }}</li>
-        </ul>
-    @endforeach
-    <h3>Los siguientes fueron rechazados</h3>
-    @foreach ($vouchers_error as $comprobante_reject)
-        <ul>
-            @foreach ($data['errors'] as $error)
-                <li>Error en el XML: {{ $error['error'] }}</li>
-                <pre>{{ $error['xmlContent'] }}</pre>
-            @endforeach
-        </ul>
-    @endforeach
-    <p>¡Gracias por usar nuestro servicio!</p>
+    @if (count($vouchers_error) > 0)
+        <h3>Los siguientes comprobantes fueron rechazados</h3>
+        @foreach ($vouchers_error as $comprobante_reject)
+            <ul>
+                <li>archivo: {{ $comprobante_reject['xml_content'] }}</li>
+                @foreach ($comprobante_reject['error'] as $error)
+                    <ul>
+                        <li>{{ $error }}</li>
+                    </ul>
+                @endforeach
+            </ul>
+        @endforeach
+    @endif
+    @if (count($comprobantes) > 0)
+        <h3>Los siguientes comprobantes fueron aceptados</h3>
+        @foreach ($comprobantes as $comprobante_accept)
+            <ul>
+                <li>archivo: {{ $comprobante_accept['xml_content'] }}</li>
+            </ul>
+        @endforeach
+        <p>¡Gracias por usar nuestro servicio!</p>
+        <p>Saludos cordiales,</p>
+        <p>El equipo de {{ config('app.name') }}</p>
+    @endif
 </body>
 
 </html>

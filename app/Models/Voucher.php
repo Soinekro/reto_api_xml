@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\ApiTrait;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -100,5 +101,14 @@ class Voucher extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(VoucherLine::class);
+    }
+
+    public static function validatePathXML($xml,string $path)
+    {
+        try {
+            return $xml->xpath($path)[0];
+        } catch (Exception $e) {
+            return null;
+        }
     }
 }

@@ -6,7 +6,9 @@ use App\Events\Vouchers\VouchersCreated;
 use App\Models\User;
 use App\Models\Voucher;
 use App\Models\VoucherLine;
+use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use SimpleXMLElement;
 
@@ -31,78 +33,137 @@ class VoucherService
      * @param User $user
      * @return Voucher[]
      */
-    public function storeVouchersFromXmlContents(array $xmlContents, User $user): array
+    public function storeVouchersFromXmlContents(array $xmlContents, User $user): void
     {
         $vouchers = [];
         $vouchers_error = [];
         foreach ($xmlContents as $xmlContent) {
-            try {
-                $vouchers[] = $this->storeVoucherFromXmlContent($xmlContent, $user);
-            } catch (\Exception $e) {
-                Log::error($e);
+            $response = $this->storeVoucherFromXmlContent($xmlContent['content'], $user);
+            if ($response['aceptado']) {
+                $vouchers[] = [
+                    'xml_content' => $xmlContent['name'],
+                ];
+            } else {
                 $vouchers_error[] = [
-                    'xml_content' => $xmlContent,
-                    'error' => $e->getMessage(),
+                    'xml_content' => $xmlContent['name'],
+                    'error' => $response['error'] ? $response['error'] : ['Error al crear el comprobante'],
                 ];
             }
         }
 
-        VouchersCreated::dispatch($vouchers, $user, $vouchers_error = []);
-
-        return $vouchers;
+        VouchersCreated::dispatch($vouchers, $user, $vouchers_error);
     }
 
-    public function storeVoucherFromXmlContent(string $xmlContent, User $user): Voucher
+    public function storeVoucherFromXmlContent(string $xmlContent, User $user): array
     {
         $xml = new SimpleXMLElement($xmlContent);
-
-        $issuerName = (string) $xml->xpath('//cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name')[0];
-        $invoiceCode = (string) $xml->xpath('//cbc:InvoiceTypeCode')[0];
-        $invoiceSerieComplete = (string) $xml->xpath('//cbc:ID')[0];
+        $errores = [];
+        $issuerName = Voucher::validatePathXML($xml, 'cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name');
+        if ($issuerName == null) {
+            $errores[] = 'No se encontró el campo de nombre del emisor';
+        }
+        $invoiceCode = Voucher::validatePathXML($xml, 'cbc:InvoiceTypeCode');
+        if ($invoiceCode == null) {
+            $errores[] = 'No se encontró el campo de tipo de comprobante';
+        }
+        // Verificar que el contenido no esté vacío
+        $invoiceSerieComplete = Voucher::validatePathXML($xml, 'cbc:ID');
+        if ($invoiceSerieComplete == null) {
+            $errores[] = 'No se encontró el campo de serie y correlativo';
+        }
         $invoiceSerie = substr($invoiceSerieComplete, 0, 4);
-        $invoiceCorrelative = (int) substr($invoiceSerieComplete, 5);
-        $invoice_type_currency = (string) $xml->xpath('//cbc:DocumentCurrencyCode')[0];
-        $issuerDocumentType = (string) $xml->xpath('//cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID')[0];
-        $issuerDocumentNumber = (string) $xml->xpath('//cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID')[0];
-
-        $receiverName = (string) $xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName')[0];
-        $receiverDocumentType = (string) $xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID')[0];
-        $receiverDocumentNumber = (string) $xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID')[0];
-
-        $totalAmount = (string) $xml->xpath('//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount')[0];
-
-        $voucher = new Voucher([
-            'invoice_code' => $invoiceCode,
-            'invoice_serie' => $invoiceSerie,
-            'invoice_correlative' => $invoiceCorrelative,
-            'invoice_type_currency' => $invoice_type_currency,
-            'issuer_name' => $issuerName,
-            'issuer_document_type' => $issuerDocumentType,
-            'issuer_document_number' => $issuerDocumentNumber,
-            'receiver_name' => $receiverName,
-            'receiver_document_type' => $receiverDocumentType,
-            'receiver_document_number' => $receiverDocumentNumber,
-            'total_amount' => $totalAmount,
-            'xml_content' => $xmlContent,
-            'user_id' => $user->id,
-        ]);
-        $voucher->save();
-
-        foreach ($xml->xpath('//cac:InvoiceLine') as $invoiceLine) {
-            $name = (string) $invoiceLine->xpath('cac:Item/cbc:Description')[0];
-            $quantity = (float) $invoiceLine->xpath('cbc:InvoicedQuantity')[0];
-            $unitPrice = (float) $invoiceLine->xpath('cac:Price/cbc:PriceAmount')[0];
-
-            $voucherLine = new VoucherLine([
-                'name' => $name,
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'voucher_id' => $voucher->id,
-            ]);
-
-            $voucherLine->save();
+        $invoiceCorrelative = substr($invoiceSerieComplete, 5);
+        $invoice_type_currency = Voucher::validatePathXML($xml, 'cbc:DocumentCurrencyCode');
+        if ($invoice_type_currency == null) {
+            $errores[] = 'No se encontró el campo de tipo de moneda';
+        }
+        $issuerDocumentType = Voucher::validatePathXML($xml, 'cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID');
+        if ($issuerDocumentType == null) {
+            $errores[] = 'No se encontró el campo de tipo de documento del emisor';
+        }
+        $issuerDocumentNumber = Voucher::validatePathXML($xml, 'cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID');
+        if ($issuerDocumentNumber == null) {
+            $errores[] = 'No se encontró el campo de número de documento del emisor';
+        }
+        $receiverName = Voucher::validatePathXML($xml, 'cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName');
+        if ($receiverName == null) {
+            $errores[] = 'No se encontró el campo de nombre del receptor';
+        }
+        $receiverDocumentType = Voucher::validatePathXML($xml, 'cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID');
+        if ($receiverDocumentType == null) {
+            $errores[] = 'No se encontró el campo de tipo de documento del receptor';
+        }
+        $receiverDocumentNumber = Voucher::validatePathXML($xml, 'cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID');
+        if ($receiverDocumentNumber == null) {
+            $errores[] = 'No se encontró el campo de número de documento del receptor';
+        }
+        $totalAmount = Voucher::validatePathXML($xml, 'cac:LegalMonetaryTotal/cbc:PayableAmount');
+        if ($totalAmount == null) {
+            $errores[] = 'No se encontró el campo de monto total';
         }
 
-        return $voucher;
+        if (!empty($errores)) {
+            return [
+                'aceptado' => false,
+                'error' => $errores,
+            ];
+        } else {
+            $voucher = new Voucher([
+                'invoice_code' => $invoiceCode,
+                'invoice_serie' => $invoiceSerie,
+                'invoice_correlative' => $invoiceCorrelative,
+                'invoice_type_currency' => $invoice_type_currency,
+                'issuer_name' => $issuerName,
+                'issuer_document_type' => $issuerDocumentType,
+                'issuer_document_number' => $issuerDocumentNumber,
+                'receiver_name' => $receiverName,
+                'receiver_document_type' => $receiverDocumentType,
+                'receiver_document_number' => $receiverDocumentNumber,
+                'total_amount' => $totalAmount,
+                'xml_content' => $xmlContent,
+                'user_id' => $user->id,
+            ]);
+            $voucher->save();
+        }
+
+        $items = Voucher::validatePathXML($xml, 'cac:InvoiceLine');
+        if ($items == null) {
+            $errores[] = 'No se encontraron items en el comprobante';
+        }
+        $n = 1;
+        foreach ($xml->xpath('//cac:InvoiceLine') as $invoiceLine) {
+            $name = Voucher::validatePathXML($xml, 'cac:InvoiceLine/cac:Item/cbc:Description');
+            if ($name == null) {
+                $errores[] = 'No se encontró el campo de nombre del producto item ' . $n;
+            }
+            $quantity = Voucher::validatePathXML($xml, 'cac:InvoiceLine/cbc:InvoicedQuantity');
+            if ($quantity == null) {
+                $errores[] = 'No se encontró el campo de cantidad item ' . $n;
+            }
+            $unitPrice = Voucher::validatePathXML($xml, 'cac:InvoiceLine/cac:Price/cbc:PriceAmount');
+            if ($unitPrice == null) {
+                $errores[] = 'No se encontró el campo de precio unitario  item ' . $n;
+            }
+            if (!empty($errores)) {
+                return [
+                    'aceptado' => false,
+                    'error' => $errores,
+                ];
+            } else {
+                $voucherLine = new VoucherLine([
+                    'name' => $name,
+                    'quantity' => (double)$quantity,
+                    'unit_price' => (double)$unitPrice,
+                    'voucher_id' => $voucher->id,
+                ]);
+                $voucherLine->save();
+            }
+            $n++;
+        }
+
+        return [
+            'aceptado' => empty($errores),
+            'error' => $errores,
+        ];
     }
 }

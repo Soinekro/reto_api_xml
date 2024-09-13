@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Mail\Mailables\Content;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
@@ -27,7 +28,7 @@ class ProcessVouchersFromXmlContentsJob implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        private $xmlContents,
+        private array $xmlContents,
         private User $user,
     ) {
         $this->voucherService = new VoucherService();
