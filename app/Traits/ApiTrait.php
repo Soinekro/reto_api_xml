@@ -47,11 +47,14 @@ trait ApiTrait
         }
 
         $filters = request()->only('invoice_serie', 'invoice_correlative');
-        foreach ($filters as $key => $value) {
-            if ($value) {
-                $query->where($key, $value);
+        $query->where(function ($query) use ($filters) {
+            foreach ($filters as $field => $value) {
+                if (empty($value)) {
+                    continue;
+                }
+                $query->orWhere($field, $value);
             }
-        }
+        });
     }
     /**
      * @param Builder $query
